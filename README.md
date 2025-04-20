@@ -9,7 +9,7 @@
 	  2. open the folder in which you want the project.
 	  3. open terminal with the same folder location.
 	  4. type: 
-		git clone https://github.com/ImmrAD/digital-kitchen.git
+		git clone https://github.com/ImmrAD/the-digital-diner.git
 
  - Frontend:
 	 1. cd frontend
