@@ -26,6 +26,16 @@ pool.connect()
   .then(() => console.log('Connected to PostgreSQL via node-postgres'))
   .catch(err => console.error('PostgreSQL connection error:', err));
 
+// API Routes
+const apiRouter = require('./routes/api');
+app.use('/api', apiRouter);
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something went wrong!' });
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

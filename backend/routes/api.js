@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const MenuItem = require('../models/menuItem');
-const pool = require('../models/order');
+const { pool, authenticateUser } = require('../models/order');
+const { registerUser } = require('../models/user');
+
 
 // Get all menu items
 router.get('/menu', async (req, res) => {
@@ -91,4 +93,138 @@ router.get('/orders/:phone', async (req, res) => {
   }
 });
 
+// User registration
+router.post('/register', async (req, res) => {
+  const { name, phone, email, password } = req.body;
+  
+  try {
+    // Basic field validation
+    const errors = [];
+    if (!name) errors.push('Name is required');
+    if (!phone) errors.push('Phone number is required');
+    if (!password) errors.push('Password is required');
+    
+    if (errors.length > 0) {
+      return res.status(400).json({ message: errors.join(', ') });
+    }
+    
+    // Additional validation before registration
+    if (!/^\d{10}$/.test(phone)) {
+      return res.status(400).json({ message: 'Phone number must be exactly 10 digits' });
+    }
+    
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ message: 'Invalid email format' });
+    }
+    
+    if (password.length < 8) {
+      return res.status(400).json({ message: 'Password must be at least 8 characters long' });
+    }
+    
+    const user = await registerUser(name, phone, email, password);
+    res.status(201).json({ id: user.id, name: user.name });
+  } catch (err) {
+    // Handle specific database errors
+    if (err.message.includes('Phone number already registered')) {
+      return res.status(400).json({ message: 'This phone number is already registered' });
+    }
+    if (err.message.includes('Email already registered')) {
+      return res.status(400).json({ message: 'This email is already registered' });
+    }
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// User login
+router.post('/login', async (req, res) => {
+  const { phone, password } = req.body;
+  
+  try {
+    const user = await authenticateUser(phone, password);
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+    res.json({ id: user.id, name: user.name });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Create new menu item
+router.post('/menu', async (req, res) => {
+  try {
+    const menuItem = new MenuItem(req.body);
+    const savedItem = await menuItem.save();
+    res.status(201).json(savedItem);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// --- User Cart Endpoints (PostgreSQL) ---
+// Get cart for a user
+router.get('/cart/:userId', async (req, res) => {
+  try {
+    const cartResult = await pool.query('SELECT * FROM carts WHERE user_id = $1', [req.params.userId]);
+    if (cartResult.rows.length === 0) {
+      return res.json({ userId: req.params.userId, items: [] });
+    }
+    const cart = cartResult.rows[0];
+    const itemsResult = await pool.query('SELECT * FROM cart_items WHERE cart_id = $1', [cart.id]);
+    res.json({ userId: req.params.userId, items: itemsResult.rows });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+// Add item to cart
+router.post('/cart/:userId/add', async (req, res) => {
+  const { menu_item_id, quantity, special_instructions } = req.body;
+  try {
+    let cartResult = await pool.query('SELECT * FROM carts WHERE user_id = $1', [req.params.userId]);
+    let cartId;
+    if (cartResult.rows.length === 0) {
+      const newCart = await pool.query('INSERT INTO carts (user_id) VALUES ($1) RETURNING id', [req.params.userId]);
+      cartId = newCart.rows[0].id;
+    } else {
+      cartId = cartResult.rows[0].id;
+    }
+    // Check if item already exists in cart
+    const existingItem = await pool.query('SELECT * FROM cart_items WHERE cart_id = $1 AND menu_item_id = $2', [cartId, menu_item_id]);
+    if (existingItem.rows.length > 0) {
+      await pool.query('UPDATE cart_items SET quantity = quantity + $1, special_instructions = $2 WHERE cart_id = $3 AND menu_item_id = $4', [quantity, special_instructions || existingItem.rows[0].special_instructions, cartId, menu_item_id]);
+    } else {
+      await pool.query('INSERT INTO cart_items (cart_id, menu_item_id, quantity, special_instructions) VALUES ($1, $2, $3, $4)', [cartId, menu_item_id, quantity, special_instructions]);
+    }
+    const itemsResult = await pool.query('SELECT * FROM cart_items WHERE cart_id = $1', [cartId]);
+    res.json({ userId: req.params.userId, items: itemsResult.rows });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+// Remove item from cart
+router.post('/cart/:userId/remove', async (req, res) => {
+  const { menu_item_id } = req.body;
+  try {
+    const cartResult = await pool.query('SELECT * FROM carts WHERE user_id = $1', [req.params.userId]);
+    if (cartResult.rows.length === 0) return res.status(404).json({ message: 'Cart not found' });
+    const cartId = cartResult.rows[0].id;
+    await pool.query('DELETE FROM cart_items WHERE cart_id = $1 AND menu_item_id = $2', [cartId, menu_item_id]);
+    const itemsResult = await pool.query('SELECT * FROM cart_items WHERE cart_id = $1', [cartId]);
+    res.json({ userId: req.params.userId, items: itemsResult.rows });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+// Clear cart
+router.post('/cart/:userId/clear', async (req, res) => {
+  try {
+    const cartResult = await pool.query('SELECT * FROM carts WHERE user_id = $1', [req.params.userId]);
+    if (cartResult.rows.length === 0) return res.status(404).json({ message: 'Cart not found' });
+    const cartId = cartResult.rows[0].id;
+    await pool.query('DELETE FROM cart_items WHERE cart_id = $1', [cartId]);
+    res.json({ userId: req.params.userId, items: [] });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
 module.exports = router;

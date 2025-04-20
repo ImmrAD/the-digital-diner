@@ -2,16 +2,19 @@ const mongoose = require('mongoose');
 
 const menuItemSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  description: String,
-  price: { type: Number, required: true },
-  category: { type: String, required: true },
   ingredients: [String],
-  dietaryOptions: {
-    vegetarian: Boolean,
-    vegan: Boolean,
-    glutenFree: Boolean
+  dietaryInfo: { type: String, enum: ['veg', 'non-veg', 'vegan'] },
+  calories: { type: Number, required: true },
+  prices: {
+    small: { type: Number, required: true },
+    medium: { type: Number, required: true },
+    large: { type: Number, required: true }
   },
-  imageUrl: String,
+  category: { 
+    type: String, 
+    required: true,
+    enum: ['Appetizers', 'Main Courses', 'Desserts', 'Drinks']
+  },
   active: { type: Boolean, default: true }
 });
 
