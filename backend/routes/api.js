@@ -53,10 +53,11 @@ router.post('/orders', async (req, res) => {
     
     // Add order items
     for (const item of items) {
-      const menuItem = menuItems.find(m => m._id.toString() === item.menu_item_id);
+      // Use the price from the request payload instead of looking it up from the menu item
+      // This handles cases where the price might vary based on size selection
       await pool.query(
         'INSERT INTO order_items (order_id, menu_item_id, quantity, price, special_instructions) VALUES ($1, $2, $3, $4, $5)',
-        [orderId, item.menu_item_id, item.quantity, menuItem.price, item.special_instructions]
+        [orderId, item.menu_item_id, item.quantity, item.price, item.special_instructions]
       );
     }
     
@@ -67,15 +68,16 @@ router.post('/orders', async (req, res) => {
 });
 
 // Get orders by phone number
-router.get('/orders/:phone', async (req, res) => {
+router.get('/orders/phone/:phone', async (req, res) => {
   try {
     const orders = await pool.query(
       'SELECT * FROM orders WHERE phone_number = $1 ORDER BY order_date DESC',
       [req.params.phone]
     );
     
+    // Return empty array instead of 404 when no orders found
     if (orders.rows.length === 0) {
-      return res.status(404).json({ message: 'No orders found' });
+      return res.json([]);
     }
     
     // Get order items for each order

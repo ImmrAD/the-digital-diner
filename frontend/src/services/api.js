@@ -39,7 +39,9 @@ export const createOrder = async (orderData) => {
 
 export const getOrdersByPhone = async (phone) => {
   try {
-    const response = await API.get(`/orders/${phone}`);
+    // Use encodeURIComponent to properly format the phone number in the URL
+    const encodedPhone = encodeURIComponent(phone);
+    const response = await API.get(`/orders/phone/${encodedPhone}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching orders:', error);

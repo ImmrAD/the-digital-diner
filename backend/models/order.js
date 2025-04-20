@@ -40,7 +40,9 @@ const createOrderTable = async () => {
       email VARCHAR(100),
       order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       status VARCHAR(20) DEFAULT 'pending',
-      total_amount DECIMAL(10,2) NOT NULL
+      total_amount DECIMAL(10,2) NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `);
 };
@@ -91,19 +93,38 @@ const registerUser = async (name, phone, email, password) => {
 };
 
 const authenticateUser = async (phone, password) => {
-  const result = await pool.query(
-    'SELECT * FROM users WHERE phone_number = $1',
-    [phone]
-  );
-  
-  if (result.rows.length === 0) {
-    return null;
+  if (!phone || !password) {
+    throw new Error('Phone number and password are required');
   }
-  
-  const user = result.rows[0];
-  const isValid = await bcrypt.compare(password, user.password_hash);
-  
-  return isValid ? user : null;
+
+  // Validate phone number format
+  if (!/^\d{10}$/.test(phone)) {
+    throw new Error('Invalid phone number format');
+  }
+
+  try {
+    const result = await pool.query(
+      'SELECT * FROM users WHERE phone_number = $1',
+      [phone]
+    );
+    
+    if (result.rows.length === 0) {
+      return null;
+    }
+    
+    const user = result.rows[0];
+    const isValid = await bcrypt.compare(password, user.password_hash);
+    
+    if (!isValid) {
+      return null;
+    }
+
+    // Return user data without sensitive information
+    const { password_hash, ...userData } = user;
+    return userData;
+  } catch (err) {
+    throw new Error('Authentication failed');
+  }
 };
 
 module.exports = {

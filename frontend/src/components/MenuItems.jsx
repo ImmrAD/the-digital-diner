@@ -2,15 +2,26 @@ import { useEffect, useState } from 'react';
 import { getMenuItems, getMenuItemsByCategory } from '../services/api';
 import { useCart } from './CartContext';
 
-export default function MenuItems() {
-  const { cart, dispatch } = useCart();
-  const [menuItems, setMenuItems] = useState([]);
-  
+ export default function MenuItems() {
+  const { dispatch } = useCart();
+   const [menuItems, setMenuItems] = useState([]);
+   
+   const [selectedSize, setSelectedSize] = useState('medium');
+  const [quantity, setQuantity] = useState(1);
+
   const handleAddToCart = (item) => {
-    dispatch({ type: "ADD_TO_CART", payload: item });
-  };
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+    // Construct the item payload for the cart context
+    const cartItem = {
+      menuItemId: item._id, // Use _id from the fetched menuItem
+      name: item.name,
+      price: item.prices[selectedSize], // Use selected size
+      quantity: quantity, // Use selected quantity
+      special_instructions: '' // Default empty special instructions
+    };
+    dispatch({ type: "ADD_TO_CART", payload: cartItem });
+   };
+   const [loading, setLoading] = useState(true);
+   const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchMenuItems = async () => {
@@ -47,12 +58,29 @@ export default function MenuItems() {
                 <div key={item._id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
                   <h3 className="text-xl font-semibold mb-2">{item.name}</h3>
                   <p className="text-gray-600 mb-2">{item.ingredients.join(', ')}</p>
-                  <p className="text-lg font-bold mb-4">${item.prices.medium}</p>
+                  <div className="flex items-center gap-4 mb-4">
+                    <select 
+                      value={selectedSize} 
+                      onChange={(e) => setSelectedSize(e.target.value)}
+                      className="border rounded p-1"
+                    >
+                      <option value="small">Small (${item.prices.small})</option>
+                      <option value="medium">Medium (${item.prices.medium})</option>
+                      <option value="large">Large (${item.prices.large})</option>
+                    </select>
+                    <input
+                      type="number"
+                      min="1"
+                      value={quantity}
+                      onChange={(e) => setQuantity(parseInt(e.target.value))}
+                      className="border rounded p-1 w-16"
+                    />
+                  </div>
                   <button 
-                    className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition-colors"
-                    onClick={() => handleAddToCart(item)}
-                  >
-                    Add to Cart
+                    onClick={() => handleAddToCart(item)} // Pass the full menuItem to handleAddToCart
+                     className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 transition-colors"
+                   >
+                     Add to Cart
                   </button>
                 </div>
               ))}
