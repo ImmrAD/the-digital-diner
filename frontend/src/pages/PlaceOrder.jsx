@@ -43,11 +43,11 @@ export default function PlaceOrder() {
             {cartItems.map((item, index) => (
               <div key={index} className="mb-2">
                 <span>{item.name} x {item.quantity}</span>
-                <span className="ml-4">${item.price * item.quantity}</span>
+                <span className="ml-4">₹{item.price * item.quantity}</span>
               </div>
             ))}
             <div className="mt-4 text-xl font-bold">
-              Total: ${totalPrice}
+              Total: ₹{totalPrice}
             </div>
           </div>
           <button 

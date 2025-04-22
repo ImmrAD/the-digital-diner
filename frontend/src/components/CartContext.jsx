@@ -38,6 +38,21 @@ function cartReducer(state, action) {
         }
       };
     }
+    case "UPDATE_QUANTITY": {
+      const { userId, menuItemId, quantity } = action.payload;
+      const userCart = state.carts[userId] || [];
+      const updatedCart = userCart.map(item => 
+        item.menuItemId === menuItemId ? { ...item, quantity } : item
+      );
+      
+      return {
+        ...state,
+        carts: {
+          ...state.carts,
+          [userId]: updatedCart
+        }
+      };
+    }
     case "REMOVE_FROM_CART": {
       const { userId, menuItemId } = action.payload; // Changed payload to menuItemId
       const userCart = state.carts[userId] || [];
@@ -81,6 +96,16 @@ export function CartProvider({ children }) {
     switch (action.type) {
       case "ADD_TO_CART":
         dispatch({ type: "ADD_TO_CART", payload: { userId, item: action.payload } });
+        break;
+      case "UPDATE_QUANTITY":
+        dispatch({ 
+          type: "UPDATE_QUANTITY", 
+          payload: { 
+            userId, 
+            menuItemId: action.payload.menuItemId, 
+            quantity: action.payload.quantity 
+          } 
+        });
         break;
       case "REMOVE_FROM_CART":
         // Expecting payload to be menuItemId
