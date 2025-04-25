@@ -16,14 +16,27 @@ mongoose.connect(process.env.MONGODB_URI)
 // PostgreSQL connection pool
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: true
-  }
+  ssl: process.env.DATABASE_URL.includes('localhost') ? false : {
+    rejectUnauthorized: false
+  },
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000
 });
 
-pool.connect()
-  .then(() => console.log('Connected to PostgreSQL via node-postgres'))
-  .catch(err => console.error('PostgreSQL connection error:', err));
+// Test database connection
+const testConnection = async () => {
+  try {
+    const client = await pool.connect();
+    console.log('Connected to PostgreSQL via node-postgres');
+    client.release();
+  } catch (err) {
+    console.error('PostgreSQL connection error:', err);
+    process.exit(1); // Exit if database connection fails
+  }
+};
+
+testConnection();
 
 // API Routes
 const apiRouter = require('./routes/api');
