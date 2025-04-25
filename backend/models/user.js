@@ -1,11 +1,10 @@
 const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
 const pool = new Pool({
-  host: process.env.POSTGRES_HOST,
-  port: process.env.POSTGRES_PORT,
-  user: process.env.POSTGRES_USER,
-  password: process.env.POSTGRES_PASSWORD,
-  database: process.env.POSTGRES_DB
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: true
+  }
 });
 
 const SALT_ROUNDS = 10;
