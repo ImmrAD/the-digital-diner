@@ -1,11 +1,5 @@
-const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: true
-  }
-});
+const { pool } = require('../config/db');
 
 const SALT_ROUNDS = 10;
 
@@ -58,6 +52,42 @@ const registerUser = async (name, phone, email, password) => {
   }
 };
 
+const authenticateUser = async (phone, password) => {
+  if (!phone || !password) {
+    throw new Error('Phone number and password are required');
+  }
+
+  // Validate phone number format
+  if (!/^\d{10}$/.test(phone)) {
+    throw new Error('Invalid phone number format');
+  }
+
+  try {
+    const result = await pool.query(
+      'SELECT * FROM users WHERE phone_number = $1',
+      [phone]
+    );
+    
+    if (result.rows.length === 0) {
+      return null;
+    }
+    
+    const user = result.rows[0];
+    const isValid = await bcrypt.compare(password, user.password_hash);
+    
+    if (!isValid) {
+      return null;
+    }
+
+    // Return user data without sensitive information
+    const { password_hash, ...userData } = user;
+    return userData;
+  } catch (err) {
+    throw new Error('Authentication failed');
+  }
+};
+
 module.exports = {
-  registerUser
+  registerUser,
+  authenticateUser
 };

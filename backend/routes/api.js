@@ -2,8 +2,7 @@ const express = require('express');
 const router = express.Router();
 const MenuItem = require('../models/menuItem');
 const { pool } = require('../config/db');
-const { authenticateUser } = require('../models/order');
-const { registerUser } = require('../models/user');
+const { registerUser, authenticateUser } = require('../models/user');
 
 
 // Get all menu items
