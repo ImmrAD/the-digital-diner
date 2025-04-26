@@ -7,7 +7,8 @@ const app = express();
 app.use(cors({
   origin: [
     'https://cosmic-duckanoo-de9110.netlify.app',
-    'http://localhost:5173'
+    'http://localhost:5173',
+    'https://the-digital-diner.pages.dev'
   ],
   credentials: true
 }));

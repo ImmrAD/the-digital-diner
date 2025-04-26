@@ -1,10 +1,8 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: 'https://2b4eb95b-the-digital-diner.icy8766.workers.dev/api',
-  headers: {
-    'Content-Type': 'application/json'
-  }
+  baseURL: 'https://the-digital-diner.pages.dev/api',
+  withCredentials: true
 });
 
 export const getMenuItems = async () => {
