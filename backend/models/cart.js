@@ -1,4 +1,4 @@
-const { pool } = require('./order');
+const { pool } = require('../config/db');
 
 // Get cart for a user
 const getCartByUserId = async (userId) => {
