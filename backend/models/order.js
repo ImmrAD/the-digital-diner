@@ -1,7 +1,6 @@
 const bcrypt = require('bcrypt');
 const { pool } = require('../config/db');
 
-
 const SALT_ROUNDS = 10;
 
 const createCartTable = async () => {

@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const MenuItem = require('../models/menuItem');
-const { pool, authenticateUser } = require('../models/order');
+const { pool } = require('../config/db');
+const { authenticateUser } = require('../models/order');
 const { registerUser } = require('../models/user');
 
 
