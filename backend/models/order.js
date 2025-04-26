@@ -1,20 +1,6 @@
-const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: true
-  },
-  connectionTimeoutMillis: 5000,
-  idleTimeoutMillis: 30000,
-  max: 20
-});
+const { pool } = require('../config/db');
 
-// Add connection error handling
-pool.on('error', (err) => {
-  console.error('Unexpected error on idle client', err);
-  process.exit(-1);
-});
 
 const SALT_ROUNDS = 10;
 

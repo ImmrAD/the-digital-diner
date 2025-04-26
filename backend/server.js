@@ -1,6 +1,5 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const { Pool } = require('pg');
 const cors = require('cors');
 require('dotenv').config();
 
@@ -13,17 +12,8 @@ mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('MongoDB connection error:', err));
 
-// PostgreSQL connection pool
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: true
-  },
-  connectionTimeoutMillis: 5000,
-  idleTimeoutMillis: 30000,
-  max: 20
-});
-
+// PostgreSQL connection
+const { pool } = require('./config/db');
 pool.connect()
   .then(() => console.log('Connected to PostgreSQL via node-postgres'))
   .catch(err => console.error('PostgreSQL connection error:', err));
