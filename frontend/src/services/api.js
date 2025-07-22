@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: 'https://the-digital-diner.pages.dev/api',
+  baseURL: 'https://the-digital-diner-4gd4.onrender.com',
   withCredentials: true
 });
 
