@@ -1,9 +1,10 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: 'https://the-digital-diner-4gd4.onrender.com',
+  baseURL: 'https://the-digital-diner-4gd4.onrender.com/api', // add /api
   withCredentials: true
 });
+
 
 export const getMenuItems = async () => {
   try {
