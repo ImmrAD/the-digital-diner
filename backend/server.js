@@ -4,15 +4,20 @@ const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
+import cors from 'cors';
+
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://cosmic-duckanoo-de9110.netlify.app',
+  'https://the-digital-diner.pages.dev',
+  'https://the-digital-diner.vercel.app' // ✅ THIS IS CRITICAL
+];
+
 app.use(cors({
-  origin: [
-    'https://cosmic-duckanoo-de9110.netlify.app',
-    'http://localhost:5173',
-    'https://the-digital-diner.pages.dev',
-    'https://the-digital-diner.vercel.app'
-  ],
+  origin: allowedOrigins,
   credentials: true
 }));
+
 app.use(express.json());
 
 // MongoDB connection
