@@ -4,13 +4,12 @@ const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
-import cors from 'cors';
 
 const allowedOrigins = [
   'http://localhost:5173',
   'https://cosmic-duckanoo-de9110.netlify.app',
   'https://the-digital-diner.pages.dev',
-  'https://the-digital-diner.vercel.app' // ✅ THIS IS CRITICAL
+  'https://the-digital-diner.vercel.app'
 ];
 
 app.use(cors({
@@ -44,7 +43,6 @@ app.use((err, req, res, next) => {
 app.get('/', (req, res) => {
   res.send('🍽️ Digital Diner Backend is live!');
 });
-
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
