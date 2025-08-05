@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: 'https://the-digital-diner-4gd4.onrender.com/api', // add /api
+  baseURL: import.meta.env.VITE_API_URL || 'https://the-digital-diner-4gd4.onrender.com/api',
   withCredentials: true
 });
 
